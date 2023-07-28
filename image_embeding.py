@@ -1,4 +1,3 @@
-from mtcnn import MTCNN
 import tensorflow as tf
 import mediapipe as mp
 import PIL
@@ -13,7 +12,8 @@ class FaceEmbedder:
         self.model = tf.keras.models.load_model(model_path)
         self.face_detection = mp.solutions.face_detection.FaceDetection(model_selection=1, min_detection_confidence=0.5)
 
-    def _get_face(self, img: np.ndarray) -> Optional[np.ndarray]:
+    def _get_face(self, img) -> Optional[np.ndarray]:
+        img = img
         face = self.face_detection.process(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
         if not face.detections:
             print('Cant find face')
@@ -40,10 +40,10 @@ class FaceEmbedder:
 
         return None
 
-    def get_embedded_face(self, image_path: str) -> Optional[np.ndarray]:
-        img = cv2.imread(image_path)
+    def get_embedded_face(self, face_image) -> Optional[np.ndarray]:
+        img = cv2.imread(face_image)
         if img is None:
-            print(f"Failed to read image: {image_path}")
+            print(f"Failed to read image: {face_image}")
             return None
 
         face_image = self._get_face(img)
