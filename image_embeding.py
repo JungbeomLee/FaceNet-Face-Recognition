@@ -12,6 +12,34 @@ class FaceEmbedder:
         self.model = tf.keras.models.load_model(model_path)
         self.face_detection = mp.solutions.face_detection.FaceDetection(model_selection=1, min_detection_confidence=0.5)
 
+    def _get_distance(self, embedded_image1, embedded_image2) :
+        distance = np.linalg.norm(embedded_image1 - embedded_image2)
+        return distance
+
+    def _get_most_similar_vactor(self, distance_list) -> Optional[list] :
+        # Compute min and max distances
+        min_distance = min(distance_list)
+        max_distance = max(distance_list)
+        similar_images = []
+
+        # Normalize distances and compute similarities
+        for i, distance in enumerate(distance_list):
+            # Normalize the distance to [0,1] using the min and max distances
+            normalized_distance = (distance - 0) / (max_distance - 0)
+
+            # Convert to percentage
+            percentage = (1 - normalized_distance) * 100
+
+            # Compute the similarity (as 1 - normalized Euclidean distance)
+            similarity = percentage
+
+            # Add new image
+            most_similar_images.append((i, similarity))  # Keeping track of the index and similarity
+
+        # Sort the images by similarity
+        similar_images.sort(key=lambda x: x[1], reverse=True)
+        return similar_images
+
     def _get_face(self, img) -> Optional[np.ndarray]:
         img = img
         face = self.face_detection.process(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
