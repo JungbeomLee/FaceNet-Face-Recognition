@@ -1,10 +1,8 @@
 import tensorflow as tf
 import mediapipe as mp
-import PIL
 import numpy as np
 import os
 import cv2
-from typing import Optional
 
 class FaceEmbedder:
     def __init__(self, model_path: str, margin: float = 0.15) :
@@ -16,7 +14,7 @@ class FaceEmbedder:
         distance = np.linalg.norm(embedded_image1 - embedded_image2)
         return distance
 
-    def _get_most_similar_vactor(self, distance_list) -> Optional[list] :
+    def _get_most_similar_vactor(self, distance_list) :
         # Compute min and max distances
         min_distance = min(distance_list)
         max_distance = max(distance_list)
@@ -36,11 +34,14 @@ class FaceEmbedder:
             # Add new image
             similar_images.append((i, similarity))  # Keeping track of the index and similarity
 
-        # Sort the images by similarity
+        # Sort the images by similarity in descending order
         similar_images.sort(key=lambda x: x[1], reverse=True)
-        return similar_images
 
-    def _get_face(self, img) -> Optional[np.ndarray]:
+        # Return the top 5 most similar images (indices and similarities)
+        return similar_images[:5]
+
+
+    def _get_face(self, img) :
         img = img
         face = self.face_detection.process(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
         if not face.detections:
@@ -62,13 +63,12 @@ class FaceEmbedder:
             if face_image.size == 0:
                 print('Face image size is null')
                 continue
-
-            # Resize the image to 105x105
+            face_image = cv2.cvtColor(face_image, cv2.COLOR_RGB2GRAY)
             return cv2.resize(face_image, (160, 160))
 
         return None
 
-    def get_embedded_face(self, face_image) -> Optional[np.ndarray]:
+    def get_embedded_face(self, face_image) :
         img = cv2.imread(face_image)
         if img is None:
             print(f"Failed to read image: {face_image}")
@@ -79,7 +79,8 @@ class FaceEmbedder:
             return None
 
         # Preprocess the image
-        image = np.expand_dims(face_image, axis=0)  # Add batch dimension
+        image = cv2.cvtColor(face_image, cv2.COLOR_GRAY2RGB)
+        image = np.expand_dims(image, axis=0)  # Add batch dimension
         image = image.astype('float32') / 255  # Normalize to [0,1]
 
         # Compute embedding
