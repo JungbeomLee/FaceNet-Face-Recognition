@@ -34,7 +34,7 @@ class FaceEmbedder:
             similarity = percentage
 
             # Add new image
-            most_similar_images.append((i, similarity))  # Keeping track of the index and similarity
+            similar_images.append((i, similarity))  # Keeping track of the index and similarity
 
         # Sort the images by similarity
         similar_images.sort(key=lambda x: x[1], reverse=True)
