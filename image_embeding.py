@@ -1,13 +1,21 @@
 import tensorflow as tf
 import mediapipe as mp
 import numpy as np
-import os
 import cv2
 
 class FaceEmbedder:
     def __init__(self, model_path: str, margin: float = 0.15) :
         self.margin = margin  # Adjust this value to change the cropping margin
-        self.model = tf.keras.models.load_model(model_path)
+
+        self.interpreter = tf.lite.Interpreter(model_path=model_path)
+        self.interpreter.allocate_tensors()
+
+        self.__input_details = self.interpreter.get_input_details()
+        self.__output_details = self.interpreter.get_output_details()
+
+        self.input_index = self.__input_details[0]['index']
+        self.output_index = self.__output_details[0]['index']
+
         self.face_detection = mp.solutions.face_detection.FaceDetection(model_selection=1, min_detection_confidence=0.5)
 
     def _get_distance(self, embedded_image1, embedded_image2) :
@@ -84,4 +92,8 @@ class FaceEmbedder:
         image = image.astype('float32') / 255  # Normalize to [0,1]
 
         # Compute embedding
-        return self.model.predict(image)[0]
+        self.interpreter.set_tensor(self.input_index, image)
+        self.interpreter.invoke()
+        embeddings = self.interpreter.get_tensor(self.output_index)
+
+        return embeddings
