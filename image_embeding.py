@@ -18,11 +18,11 @@ class FaceEmbedder:
 
         self.face_detection = mp.solutions.face_detection.FaceDetection(model_selection=1, min_detection_confidence=0.5)
 
-    def _get_distance(self, embedded_image1, embedded_image2) :
+    def get_distance(self, embedded_image1, embedded_image2) :
         distance = np.linalg.norm(embedded_image1 - embedded_image2)
         return distance
 
-    def _get_most_similar_vactor(self, distance_list) :
+    def get_most_similar_vactor(self, distance_list) :
         # Compute min and max distances
         min_distance = min(distance_list)
         max_distance = max(distance_list)
